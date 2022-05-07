@@ -36,8 +36,8 @@ hold on
 % S.A = A;
 
 % gains
-S.k1 = 5 * eye(3);
-S.k2 = 2 * eye(3);
+S.k1 = 14 * [1 0 0; 0 1 0; 0 0 1];
+S.k2 = 0.6 * [1 0 0; 0 1 0; 0 0 1];
 
 % perturb initial condition
 % x = x0 + [.25;.25;.1;.1]
