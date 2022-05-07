@@ -1,4 +1,4 @@
-function output = ddp_car_obst()
+function [output, us] = ddp_car_obst()
 
 % time horizon and segments
 tf = 20;
@@ -16,7 +16,7 @@ S.Lf = @car_Lf;
 S.mu = 0;
 
 % initial state
-x0 = [0.1; 65; 0; 0; 0];
+x0 = [0.1; 65; 0; 0.1; 0];
 S.xf = [0;0;-pi/2;0;0];
 
 S.os(1).p = [-10; 50];
@@ -94,7 +94,7 @@ subplot(1,2,2)
 
 plot(0:S.h:tf-S.h, us(1,:),0:S.h:tf-S.h, us(2,:));
 xlabel('sec.')
-legend('u_1','u_2')
+
 
 
 

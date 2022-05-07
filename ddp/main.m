@@ -1,11 +1,12 @@
 clear all;
 close all;
 
-global xd_individual;
-xd = ddp_car_obst();
+global xd_individual ud_individual u index;
+u = [];
+[xd, ud] = ddp_car_obst();
 
 % boundary conditions in state space
-x0 = [0.1; 65; 0; 0; 0];
+x0 = [0.1; 65; 0; 0.1; 0];
 xf = [0;0;-pi/2;0;0];
 T = 20/1000;
 % T = 2;
@@ -36,8 +37,8 @@ hold on
 % S.A = A;
 
 % gains
-S.k1 = 14 * [1 0 0; 0 1 0; 0 0 1];
-S.k2 = 0.6 * [1 0 0; 0 1 0; 0 0 1];
+S.k1 = 40 * [1.5 0 0; 0 1 0; 0 0 5];
+S.k2 = 1 * [1 0 0; 0 1.2 0; 0 0 1.5];
 
 % perturb initial condition
 % x = x0 + [.25;.25;.1;.1]
@@ -51,21 +52,34 @@ xtrack=[];
 % simulate system
 for i = 1 : length(xd)-1
     xd_individual = xd(:,i+1);
+    ud_individual = ud(:,i);
+    index = i;
     [ts, xas] = ode45(@car_ode, [T0 Tf], xa, [], S);
     xtrack=[xtrack xas'];
     xa=xas(end,:)';
+    err(:,i) = xas(end,:)' - xd_individual;
     T0=Tf;
     Tf=Tf+T
-   
+    
 end
 
 % visualize
 figure(1)
 subplot(1,2,1)
 plot(xtrack(1,:), xtrack(2,:), '-b');
-
-legend('desired', 'executed')
-
+legend('Goal', 'Obstacle','','','','','Desired','Executed')
+subplot(1,2,2)
+hold on
+plot(linspace(0,20.02,1000),u(1,:))
+plot(linspace(0,20.02,1000),u(2,:))
+legend('$u_{1d}$','$u_{2d}$','$u_1$', '$u_2$','Interpreter','latex')
+% legend('u_1', 'u_2')
+figure(2)
+plot(linspace(0,20.02,1000),err(1,:),'DisplayName','$e_x(t)$')
+hold on
+plot(linspace(0,20.02,1000),err(2,:),'DisplayName','$e_y(t)$')
+plot(linspace(0,20.02,1000),err(3,:),'DisplayName','$e_\theta (t)$')
+legend('Interpreter','latex')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -99,17 +113,27 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function ua = car_ctrl(t, xa, S)
-global xd_individual;
+global xd_individual ud_individual;
 % tracking control law
+xs = xa(1);
+ys = xa(2);
+thetas = xa(3);
+vs = xa(4);
+phis = xa(5);
 
 % get desired outputs:
 % yd = S.A*poly3(t);
 % dyd = S.A*dpoly3(t);
 % d2yd = S.A*d2poly3(t);
 yd = xd_individual(1:3);
-dyd = [xd_individual(5)*cos(xd_individual(3))*cos(xd_individual(4)); ...
-    xd_individual(5)*sin(xd_individual(3))*cos(xd_individual(4)); xd_individual(5)*sin(xd_individual(4)) / S.l];
-
+dyd = [xd_individual(4)*cos(xd_individual(3))*cos(xd_individual(5)); ...
+    xd_individual(4)*sin(xd_individual(3))*cos(xd_individual(5)); xd_individual(4)*sin(xd_individual(5)) / S.l];
+d2yd = [-sin(xd_individual(3))*cos(xd_individual(5))*sin(xd_individual(5))*xd_individual(4)^2; ...
+         cos(xd_individual(3))*cos(xd_individual(5))*sin(xd_individual(5))*xd_individual(4)^2;...
+          0] + ...
+      [cos(xd_individual(3))*cos(xd_individual(5)) -cos(xd_individual(3))*sin(xd_individual(5))*xd_individual(4) ;...
+       sin(xd_individual(3))*cos(xd_individual(5)) -sin(xd_individual(3))*sin(xd_individual(5))*xd_individual(4) ;...
+       sin(xd_individual(5)) cos(xd_individual(5))*xd_individual(4)] * ud_individual;
 % get current output
 y = car_h(xa);
 
@@ -117,29 +141,38 @@ y = car_h(xa);
 % xi = xa(end);
 
 % current velocity
-dy = [xa(5)*cos(xa(3))*cos(xa(4)); xa(5)*sin(xa(3))*cos(xa(4)); xa(5)*sin(xa(4)) / S.l];
+dy = [xa(4)*cos(xa(3))*cos(xa(5)); xa(4)*sin(xa(3))*cos(xa(5)); xa(4)*sin(xa(5)) / S.l];
 
 % error state
 z1 = y - yd;
 z2 = dy - dyd;
-d2yd = [0;0;0];
+% d2yd = [0;0;0];
 
 % virtual inputs
 v = d2yd - S.k1*z1 -S.k2*z2;
 size(v);
 
 % augmented inputs ua=(dxi, u2)
-ua = pinv([-cos(xa(3))*sin(xa(4))*xa(5) cos(xa(3))*cos(xa(4));...
-           -sin(xa(3))*cos(xa(4))*xa(5) sin(xa(3))*cos(xa(4));...
-           cos(xa(4))*xa(5)  sin(xa(4))]) * (v - ...
-           [-sin(xa(3))*cos(xa(4))*sin(xa(4))*xa(5)^2; ...
-            cos(xa(3))*cos(xa(4))*sin(xa(4))*xa(5)^2;...
-            0]);
+ua = pinv([cos(thetas)*cos(phis) -vs*cos(thetas)*sin(phis);...
+    sin(thetas)*cos(phis) -vs*sin(thetas)*sin(phis);...
+    sin(phis) vs*cos(phis)])*(v-[-vs^2*sin(thetas)*cos(phis)*sin(phis);...
+    vs^2*cos(thetas)*cos(phis)*sin(phis); 0]);
+
+ua(1) = ua(1) * 1.05;
+ua(2) = ua(2) - 3.3 * pi / 180;
+
+% ua = pinv([-cos(xa(3))*sin(xa(5))*xa(4) cos(xa(3))*cos(xa(5));...
+%            -sin(xa(3))*cos(xa(5))*xa(4) sin(xa(3))*cos(xa(5));...
+%            cos(xa(5))*xa(4)  sin(xa(5))]) * (v - ...
+%            [-sin(xa(3))*cos(xa(5))*sin(xa(5))*xa(4)^2; ...
+%             cos(xa(3))*cos(xa(5))*sin(xa(5))*xa(4)^2;...
+%             0]);
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function dxa = car_ode(t, xa, S)
+global u index;
 % unicycle ODE
 ua = car_ctrl(t, xa, S);
 
@@ -148,10 +181,11 @@ ua = car_ctrl(t, xa, S);
 u1 = ua(1);
 u2 = ua(2);
 
+u(:,index) = [u1; u2];
 
-dxa = [xa(5)*cos(xa(3))*cos(xa(4));
-       xa(5)*sin(xa(3))*cos(xa(4));
-       xa(5)*sin(xa(4)) / S.l;
+dxa = [xa(4)*cos(xa(3))*cos(xa(5));
+       xa(4)*sin(xa(3))*cos(xa(5));
+       xa(4)*sin(xa(5)) / S.l;
        u1;
        u2];
 end
