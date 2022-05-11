@@ -1,0 +1,70 @@
+\documentclass[letterpaper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[top=2.54cm,right=2cm,left=2cm,bottom=2.54cm]{geometry}
+% \usepackage{helvet}
+% \renewcommand{\familydefault}{\sfdefault}
+\usepackage{float,amssymb,tabu,booktabs,multirow,multicol,subfig,graphicx,tikz,pgfplots,amsmath,mathtools,subfigure,subcaption}
+\usepackage{listings}
+\usepackage[shortlabels]{enumitem}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+% \onehalfspacing
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+\lstset{style=mystyle}
+ 
+\usepackage{amsmath}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=cyan,
+    filecolor=blue,
+    urlcolor=magenta,
+}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{Dalton Daniel, Guanyun Liu}
+\fancyhead[RE,LO]{Nonlinear Final Project}
+\fancyhead[CE,CO]{}
+\fancyfoot[CE,CO]{\thepage}
+
+\title{Nonlinear Final project}
+\author{Dalton Daniel, Guanyun Liu}
+\date{May 2022}
+
+\begin{document}
+\maketitle
+
+\section{Control Derivation}
+Given the dynamics of a real-wheel-drive car-like model,
+\begin{flalign}
+  \dot{x} & = vcos(\theta)\nonumber\\
+  \dot{y} & = vsin(\theta)\nonumber\\
+  \dot{\theta} & = \frac{vtan(\phi)}{l}\\
+  \dot{v} & = u_1\nonumber\\
+  \dot{\phi} & = u_2\nonumber
+\end{flalign}
+
+\end{document}
