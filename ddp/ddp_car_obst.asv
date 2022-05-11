@@ -80,7 +80,7 @@ for i=1:50
 %   pause(1)
 end
 
-plot(xs(1,:), xs(2,:), '-g', 'LineWidth', 2.5);
+plot(xs(1,:), xs(2,:), '-g',);
 fprintf("-------------------------------\n")
 disp(xs(1,end))
 disp(xs(2,end))
