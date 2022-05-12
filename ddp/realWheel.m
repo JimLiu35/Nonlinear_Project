@@ -82,6 +82,7 @@ subplot(1,2,2)
 hold on
 plot(linspace(0,20.02,1000),u(1,:))
 plot(linspace(0,20.02,1000),u(2,:))
+
 legend('$u_{1d}$','$u_{2d}$','$u_1$', '$u_2$','Interpreter','latex','FontSize',18)
 % legend('u_1', 'u_2')
 figure(2)
@@ -89,6 +90,8 @@ plot(linspace(0,20.02,1000),err(1,:),'DisplayName','$e_x(t)$')
 hold on
 plot(linspace(0,20.02,1000),err(2,:),'DisplayName','$e_y(t)$')
 plot(linspace(0,20.02,1000),err(3,:),'DisplayName','$e_\theta (t)$')
+xlabel("Time (s)", 'FontSize', 18)
+ylabel("Error (m)", 'FontSize', 18)
 legend('Interpreter','latex','FontSize',18)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -23,12 +23,12 @@ S.os(1).p = [-10; 50];
 S.os(1).r = 15;
 S.os(2).p = [10; 20];
 S.os(2).r = 15;
-S.os(3).p = [-10; 0];
+S.os(3).p = [-4; 0];
 S.os(3).r = 3;
-S.os(4).p = [10; 0];
+S.os(4).p = [4; 0];
 S.os(4).r = 3;
-S.os(5).p = [0;-10];
-S.os(5).r = 3;
+S.os(5).p = [0;-6];
+S.os(5).r = 4;
 % S.os(6).p = [-5.5;1.5];
 % S.os(6).r = 1;
 
@@ -87,13 +87,16 @@ disp(xs(2,end))
 fprintf("-------------------------------\n")
 J = ddp_cost(xs, us, S)
 output = xs;
-xlabel('x')
-ylabel('y')
+axes('FontSize', 18)
+xlabel("y (m)")
+ylabel("x (m)")
 
 subplot(1,2,2)
 
 plot(0:S.h:tf-S.h, us(1,:),0:S.h:tf-S.h, us(2,:));
-xlabel('sec.')
+xlabel('Time (s)')
+ylabel('u')
+axes('FontSize', 18)
 
 
 

@@ -1,1 +1,8 @@
 ./.DS_Store
+*.swp
+*.asv
+*.aux
+*.log
+*.out
+*.pdf
+*.synctex.gz
