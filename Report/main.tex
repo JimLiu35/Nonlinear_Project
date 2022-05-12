@@ -56,15 +56,77 @@
 
 \begin{document}
 \maketitle
-
+\section{Motivation}
+Given that self driving cars want to achieve more general use it is important that they are able to achieve the final stage of the driving process, parking. To do this they need to navigate through the various obstacles of a parking lot into a desired space and make sure not to hit adjacent cars. Additionally the final state needs to be within a certain region so the user can get out of the car without hitting the cars next to them with their doors.To add further complications manufacturing specifications may allow a certain degree of error to the car resulting in some amount of uncertainty in the controls. From all of this a robust controller is needed to achieve the desired results.
+\section{Problem Setup}
+The chosen controller will be a rear-wheel drive car, with some simplifications for use with DDP trajectory generation. One major simplification will be that the length between axles is treated as 1m. To accommodate this the car's overall size will be treated as 1.66m long and .66m wide, to attempt to mimic actual car size ratios (originally approximated as 2m$\times$5m with 3m wheelbase). The car will navigate through a parking lot and come to a complete stop in a parking-space. The car's controls are acceleration with a multiplicative uncertainty based on a 5\% tolerance, and steering wheel turning $\dot{\phi}$ with a constant $3.3^\circ$ uncertainty. To accommodate the DDP method and car dimensions obstacles will be treated as 1m larger in radius (larger will be shown on graph).
 \section{Control Derivation}
-Given the dynamics of a real-wheel-drive car-like model,
+Given the dynamics of a rear-wheel-drive car-like model,
 \begin{flalign}
-  \dot{x} & = vcos(\theta)\nonumber\\
-  \dot{y} & = vsin(\theta)\nonumber\\
-  \dot{\theta} & = \frac{vtan(\phi)}{l}\\
+  \dot{x} & = v\text{cos}(\theta)\nonumber\\
+  \dot{y} & = v\text{sin}(\theta)\nonumber\\
+  \dot{\theta} & = \frac{v\text{tan}(\phi)}{l}\\
   \dot{v} & = u_1\nonumber\\
   \dot{\phi} & = u_2\nonumber
 \end{flalign}
-
+Choose the flat output $Y = (x,~y)^T$, and then keep differentiating the outputs until inputs appears with a linear relationship.
+\begin{flalign}
+  \ddot{Y}_1 & = \ddot{x} = u_1 \text{cos}(\theta) - v^2\text{sin}(\theta)\text{tan}(\phi)\nonumber\\
+  & \\
+  \ddot{Y}_2 & = \ddot{y} = u_1\text{sin}(\theta) + v^2\text{cos}(\theta)\text{tan}(\phi)\nonumber
+\end{flalign}
+The second order differentiation of the flat outputs only contains $u_1$. Hence, we need to differentiate it further to get the second input.
+\begin{flalign}\label{eq:3rd-order-eqns}
+  Y^{(3)}_1 & = x^{(3)} = -3u_1v\text{sin}(\theta)\text{tan}(\phi) - v^3\text{cos}(\theta)\text{tan}^2(\phi) + \dot{u}_1\text{cos}(\theta)-v^2\text{sin}(\theta)\text{sec}^2(\phi)u_2\nonumber\\
+  & \\
+  Y^{(3)}_2 & = y^{(3)} = 3u_1v\text{cos}(\theta)\text{tan}(\phi) - v^3\text{sin}(\theta)\text{tan}^2(\phi) + \dot{u}_1\text{sin}(\theta)+v^2\text{cos}(\theta)\text{sec}^2(\phi)u_2\nonumber
+\end{flalign}
+Rewrite Eq.~\ref{eq:3rd-order-eqns} in the matrix form,
+\begin{equation}\label{eq:3rd-order-eqns-matrixForm}
+  Y^{(3)} = 
+  \begin{bmatrix}
+    x^{(3)}\\
+    y^{(3)}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    -3u_1v\text{sin}(\theta)\text{tan}(\phi) - v^3\text{cos}(\theta)\text{tan}^2(\phi)\\
+    3u_1v\text{cos}(\theta)\text{tan}(\phi) - v^3\text{sin}(\theta)\text{tan}^2(\phi)
+  \end{bmatrix}
+  +
+  \begin{bmatrix}
+   \text{cos}(\theta) & -v^2\text{sin}(\theta)\text{sec}^2(\phi)\\
+    \text{sin}(\theta) & v^2\text{cos}(\theta)\text{sec}^2(\phi)
+  \end{bmatrix}
+  \begin{bmatrix}
+    \dot{u}_1\\
+    u_2
+  \end{bmatrix}
+\end{equation}
+In this case, we choose $u = \begin{bmatrix}
+  \dot{u}_1\\
+  u_2
+\end{bmatrix}$ as our controls and set $u_1$ as a dynamic compensator $\xi$. Also, $Y^{(3)}$ is our virtual input $v$, that is $y^{(3)} = v$. As a result, re-arranging Eq .~\ref{eq:3rd-order-eqns-matrixForm} gives us the control law (where $v\neq 0$).
+\begin{equation}
+    \begin{bmatrix}
+      \dot{u}_1\\
+      u_2
+    \end{bmatrix} = 
+    \begin{bmatrix}
+      \text{cos}(\theta) & \text{sin}(\theta)\\
+      \frac{\text{sin}(\theta)(\text{sin}^2(\phi)-1)}{v^2} & \frac{\text{cos}(\theta)\text{cos}^2(\phi)}{v^2} 
+    \end{bmatrix}
+    \Bigg(v - 
+  \begin{bmatrix}
+      -3u_1v\text{sin}(\theta)\text{tan}(\phi) - v^3\text{cos}(\theta)\text{tan}^2(\phi)\\
+      3u_1v\text{cos}(\theta)\text{tan}(\phi) - v^3\text{sin}(\theta)\text{tan}^2(\phi)
+  \end{bmatrix}
+  \Bigg)
+\end{equation}
+To track the desired trajectory,
+\begin{equation}
+    v = Y^{(3)}_d(t) - K_1 [Y(t) - Y_d(t)] - K_2[\dot{Y}(t) - \dot{Y}_d(t)] - K_3[\ddot{Y}(t) - \ddot{Y}_d(t)]
+\end{equation}
+\section{Results}
+It should be noted that due to issues with DDP the final position was not reached however, the tracker followed the desired well
 \end{document}
